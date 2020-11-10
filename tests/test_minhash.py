@@ -1,5 +1,5 @@
 import pytest
-from snapy import MinHash
+from snapy import MinHash, ModelParamError
 import numpy as np
 
 seed = 3
@@ -134,11 +134,11 @@ def test_string_input_minhash():
 
 
 def test_minhash_errors():
-    with pytest.raises(ValueError):
+    with pytest.raises(ModelParamError):
         MinHash(content, n_gram_type='words')
-    with pytest.raises(ValueError):
+    with pytest.raises(ModelParamError):
         MinHash(content, hash_bits=65)
-    with pytest.raises(ValueError):
+    with pytest.raises(ModelParamError):
         MinHash(content, method='universal')
-    with pytest.raises(ValueError):
+    with pytest.raises(ModelParamError):
         MinHash(content, n_gram=63)

@@ -46,13 +46,13 @@ class MinHash:
         """
         self.n_gram = n_gram
         if n_gram_type not in ['char', 'term']:
-            raise ValueError(
+            raise ModelParamError(
                 'Only "char" and "term" n_gram types are supported.'
             )
         self.n_gram_type = n_gram_type
         self.permutations = permutations
         if hash_bits not in [32, 64, 128]:
-            raise ValueError(
+            raise ModelParamError(
                 'Only 32, 64 and 128 bit hashes are supported.'
             )
         self.hash_bits = hash_bits
@@ -60,7 +60,7 @@ class MinHash:
             'multi_hash',
             'k_smallest_values'
         ]:
-            raise ValueError(
+            raise ModelParamError(
                 'Only "multi_hash" and "k_smallest_value" hash methods are supported.'
             )
         self.method = method
@@ -99,17 +99,17 @@ class MinHash:
         for text in texts:
             if self.n_gram_type == 'char':
                 shingles = [
-                               text[char:char + self.n_gram]
-                               for char in range(len(text))
-                           ][:trim_overflow]
+                    text[char:char + self.n_gram]
+                    for char in range(len(text))
+                ][:trim_overflow]
             else:
                 terms = text.split()
                 shingles = [
-                               ' '.join(terms[term:term + self.n_gram])
-                               for term in range(len(terms))
-                           ][:trim_overflow]
+                    ' '.join(terms[term:term + self.n_gram])
+                    for term in range(len(terms))
+                ][:trim_overflow]
             if not shingles:
-                raise ValueError(
+                raise ModelParamError(
                     'Shingle "n_gram" size must not exceed minimum text length.'
                 )
             yield shingles
@@ -171,7 +171,7 @@ class MinHash:
         # Uses a heap to make calculating n smallest values more efficient.
         heapq.heapify(signature)
         if len(document) <= self.permutations:
-            raise ValueError(
+            raise ModelParamError(
                 'N permutations must not be >= n shingles for k_smallest_values method'
             )
         for shingle in document:
@@ -207,3 +207,7 @@ class MinHash:
                 signature = self._k_smallest_hash(document)
                 signatures.append(signature)
         return np.array(signatures)
+
+
+class ModelParamError(ValueError):
+    """An invalid model parameter"""
