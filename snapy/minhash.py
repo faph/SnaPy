@@ -130,26 +130,22 @@ class MinHash:
 
         """
         signature = []
-        for seed in np.nditer(self._hash_seeds):
-            self._min_value = None
+        hash_functions = {
+            32: mmh3.hash,
+            64: mmh3.hash64,
+            128: mmh3.hash128,
+        }
+        hash_function = hash_functions.get(self.hash_bits, hash_functions[128])  # Default to mmh3.hash128
+        for seed in self._hash_seeds:
+            min_value = (1 << self.hash_bits - 1) - 1  # Initialize with largest possible value given the bit-size
             for shingle in document:
                 if self.hash_bits == 64:
-                    hash_value = mmh3.hash64(
-                        shingle, int(seed)
-                    )[0]
-                elif self.hash_bits == 32:
-                    hash_value = mmh3.hash(
-                        shingle, int(seed)
-                    )
+                    hash_value, _ = hash_function(shingle, seed)  # mmh3.hash64 returns 2 hashes
                 else:
-                    hash_value = mmh3.hash128(
-                        shingle, int(seed)
-                    )
-                if not self._min_value:
-                    self._min_value = hash_value
-                elif self._min_value > hash_value:
-                    self._min_value = hash_value
-            signature.append(self._min_value)
+                    hash_value = hash_function(shingle, seed)
+                if hash_value < min_value:
+                    min_value = hash_value
+            signature.append(min_value)
         return signature
 
     def _k_smallest_hash(self, document):
